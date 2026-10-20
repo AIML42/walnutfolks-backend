@@ -225,7 +225,7 @@ works through Supabase's connection pooler.
    `sync: false`) to the Supabase Session-pooler URL from step 1.
 3. Deploy. The public URL's `/` returns `{"status":"HEALTHY", ...}`.
 
-> **Live endpoint:** `https://<your-service>.onrender.com`  _(replace once deployed)_
+> **Live endpoint:** https://transaction-webhook-service-p5f3.onrender.com
 
 > **Note (Render free tier):** the service sleeps after ~15 min of inactivity and
 > takes ~30–50s to wake on the next request, so the first webhook after idle is
