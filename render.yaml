@@ -1,0 +1,18 @@
+# One-click deploy on Render (https://render.com).
+# Push this repo to GitHub, then on Render: New > Blueprint > pick the repo.
+#
+# This setup uses an EXTERNAL database (Supabase Postgres), so Render does not
+# create a database of its own. You paste the Supabase connection string into
+# the Render dashboard as the DATABASE_URL secret (sync: false keeps it out of
+# this file / out of git).
+services:
+  - type: web
+    name: transaction-webhook-service
+    runtime: docker
+    plan: free
+    healthCheckPath: /
+    envVars:
+      - key: PROCESSING_DELAY_SECONDS
+        value: "30"
+      - key: DATABASE_URL
+        sync: false # set this in the Render dashboard to your Supabase URL
