@@ -200,14 +200,38 @@ memory), the service survives restarts and crashes.
 
 ## Deploy to the cloud
 
-The repo includes a `Dockerfile`, a `render.yaml` blueprint, and a `Procfile`,
-so it runs on any container host. The quickest path (Render, free tier):
+Deployed with **Supabase** (managed Postgres) as the database and **Render**
+(Docker web service) for the API.
 
-1. Push this repo to GitHub.
-2. On [Render](https://render.com): **New → Blueprint**, pick the repo.
-   `render.yaml` provisions a free Postgres database and wires its connection
-   string into the service as `DATABASE_URL` automatically.
+### 1. Database — Supabase
+
+1. Create a project at [supabase.com](https://supabase.com) and save the
+   database password.
+2. **Connect → Connection string → Session pooler** gives a URL like
+   `postgresql://postgres.<ref>:<password>@aws-0-<region>.pooler.supabase.com:5432/postgres`.
+   (The Session pooler is used rather than the direct connection because it is
+   reachable over IPv4, which Render's free tier requires.)
+
+No tables to create by hand — the app creates the `transactions` table on
+startup. The `postgresql://` URL is rewritten to the async `postgresql+asyncpg`
+driver automatically, and the asyncpg prepared-statement cache is disabled so it
+works through Supabase's connection pooler.
+
+### 2. API — Render
+
+1. On [Render](https://render.com): **New → Blueprint**, pick this repo. Render
+   reads `render.yaml` and creates a Docker web service (no database of its own).
+2. Set the `DATABASE_URL` environment variable (kept out of git via
+   `sync: false`) to the Supabase Session-pooler URL from step 1.
 3. Deploy. The public URL's `/` returns `{"status":"HEALTHY", ...}`.
+
+> **Live endpoint:** `https://<your-service>.onrender.com`  _(replace once deployed)_
+
+> **Note (Render free tier):** the service sleeps after ~15 min of inactivity and
+> takes ~30–50s to wake on the next request, so the first webhook after idle is
+> slow to acknowledge. The crash-recovery design means no transaction is lost
+> across a sleep/wake or restart. For always-on, use a paid instance or ping `/`
+> periodically.
 
 Any other host works the same way — build the Docker image (or use the
 `Procfile`) and set `DATABASE_URL` to your Postgres instance. The platform's
